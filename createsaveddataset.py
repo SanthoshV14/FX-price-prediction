@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-pkl = pd.read_pickle("/content/app-ml-hw-1/appml-assignment1-dataset-v2.pkl")
+pkl = pd.read_pickle("/content/app-ml-hw-1/data/appml-assignment1-dataset-v2.pkl")
 X = pkl['X']
 y = pkl['y']
 
