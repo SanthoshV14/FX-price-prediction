@@ -7,17 +7,22 @@ Original file is located at
     https://colab.research.google.com/drive/1ZacpSiFGSqV9Y4E_jTbwWof5AUSls-og
 """
 
-# Downloading the Dataset
-!git clone https://github.com/SanthoshV14/app-ml-hw-1.git
-
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+import urllib.request
 
-pkl = pd.read_pickle("/content/app-ml-hw-1/appml-assignment1-dataset-v2.pkl")
-X = pkl['X']
-y = pkl['y']
+# Downloading the Dataset
+data_path = Path('data/appml-assignment1-dataset-v2.pkl')
+if not data_path.is_file():
+  Path('data').mkdir(parents=True, exist_ok=True)
+  url = "https://github.com/SanthoshV14/app-ml-hw-1/blob/main/data/appml-assignment1-dataset-v2.pkl?raw=true"
+  urllib.request.urlretrieve(url, filename=data_path)
+  pkl = pd.read_pickle("/content/data/appml-assignment1-dataset-v2.pkl")
+  X = pkl['X']
+  y = pkl['y']
 
 # Fractional Change
 change = (X['CAD-high'] - X['CAD-close']) / X['CAD-close']
