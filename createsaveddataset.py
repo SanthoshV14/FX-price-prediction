@@ -10,7 +10,6 @@ Original file is located at
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 import urllib.request
 
@@ -44,10 +43,7 @@ month = date.dt.month.astype('category')
 tickers = X.iloc[:, 1:]
 
 # Feature Creation
-
-import tensorflow as tf
-from tensorflow.train import BytesList,FloatList,Int64List
-from tensorflow.train import Feature,Features,Example
+from tensorflow.train import FloatList,Int64List, Feature,Features,Example
 
 
 with tf.io.TFRecordWriter('dataset.tfrecord') as f:
