@@ -19,7 +19,7 @@ if not data_path.is_file():
   Path('data').mkdir(parents=True, exist_ok=True)
   url = "https://github.com/SanthoshV14/app-ml-hw-1/blob/main/data/appml-assignment1-dataset-v2.pkl?raw=true"
   urllib.request.urlretrieve(url, filename=data_path)
-pkl = pd.read_pickle("/content/data/appml-assignment1-dataset-v2.pkl")
+pkl = pd.read_pickle("./data/appml-assignment1-dataset-v2.pkl")
 X = pkl['X']
 y = pkl['y']
 
