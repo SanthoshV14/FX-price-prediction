@@ -30,9 +30,6 @@ def parse_example(serialized_example):
     target = example['target']
     return features, target
 
-# Load the TFRecord dataset
-dataset = tf.data.TFRecordDataset(['dataset.tfrecord']).batch(32).map(parse_example).cache()
-
 # Split the dataset into training, validation, and testing datasets
 raw_dataset = tf.data.TFRecordDataset(['dataset.tfrecord'])
 datLen = raw_dataset.reduce(0,lambda x,y: x+1)
@@ -60,21 +57,21 @@ inputDict = {
 imputer = myImputer()
 imputer.adapt(train.map(lambda x,y: x['tickers']))
 normalizer = tf.keras.layers.Normalization(axis=-1)
-normalizer.adapt(dataset.map(lambda x,y: imputer(x['tickers'])))
+normalizer.adapt(train.map(lambda x,y: imputer(x['tickers'])))
 
 weekday_nTokens = 6
 weekday_catEncoder=tf.keras.layers.IntegerLookup(max_tokens=weekday_nTokens,num_oov_indices=0)
-weekday_catEncoder.adapt(dataset.map(lambda x,y:x['weekday']))
+weekday_catEncoder.adapt(train.map(lambda x,y:x['weekday']))
 weekday_catInts=weekday_catEncoder(inputDict['weekday'])
 
 month_nTokens = 12
 month_catEncoder=tf.keras.layers.IntegerLookup(max_tokens=month_nTokens,num_oov_indices=0)
-month_catEncoder.adapt(dataset.map(lambda x,y:x['month']))
+month_catEncoder.adapt(train.map(lambda x,y:x['month']))
 month_catInts=month_catEncoder(inputDict['month'])
 
 hour_nTokens = 24
 hour_catEncoder=tf.keras.layers.IntegerLookup(max_tokens=hour_nTokens,num_oov_indices=0)
-hour_catEncoder.adapt(dataset.map(lambda x,y:x['hour']))
+hour_catEncoder.adapt(train.map(lambda x,y:x['hour']))
 hour_catInts=hour_catEncoder(inputDict['hour'])
 
 weekday_embedding = tf.keras.layers.Embedding(weekday_nTokens, 2)(weekday_catInts)
@@ -89,6 +86,7 @@ hour_embedding = tf.keras.layers.Flatten()(hour_embedding)
 # Concatenate all the inputs
 preproced = tf.concat([normalizer(imputer(inputDict['tickers'])), weekday_embedding, month_embedding, hour_embedding], axis=-1)
 
+# Creating the model
 restMod = tf.keras.Sequential([
     tf.keras.layers.Dense(512,activation='relu'),
     tf.keras.layers.Dense(256,activation='relu'),
@@ -105,8 +103,18 @@ whole_model = tf.keras.Model(inputs=inputDict, outputs=decs)
 whole_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 whole_model.summary()
 
-history = whole_model.fit(train, epochs=20, verbose=1, validation_data=valid)
+# Defining callbacks
+checkpoint_cb = tf.keras.callbacks.ModelCheckpoint('mySavedModel', save_best_only=True)
+early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=10,restore_best_weights=True)
 
+# Training the model
+history = whole_model.fit(train, epochs=200, verbose=1, validation_data=valid, callbacks=[early_stopping_cb, checkpoint_cb])
+
+# Evaluating the model
+whole_model.evaluate(test)
+whole_model.save('mySavedModel')
+
+# Plotting the accuracy
 pd.DataFrame(history.history).plot(figsize=(8, 5))
 plt.grid(True)
 plt.gca().set_ylim(0, 1)
